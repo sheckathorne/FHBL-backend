@@ -4,13 +4,12 @@ const app = express()
 const cors = require('cors')
 const middleware = require('./utils/middleware')
 const matchesRouter = require('./controllers/matches')
+const playersRouter = require('./controllers/players')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const schedulesRouter = require('./controllers/schedules')
-const { MongoClient } = require('mongodb')
 
 const mongoose = require('mongoose')
-const client = new MongoClient(config.MONGO_DB_URI);
 
 mongoose.connect(config.MONGO_DB_URI)
   .then(result => {
@@ -25,23 +24,7 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(middleware.requestLogger)
 
-async function selectAllFromCollection(collectionName) {
-  await client.connect();
-  console.log('Connected successfully to server');
-
-  const db = client.db(config.DB_NAME);
-  const collection = db.collection(collectionName);
-  const findResult = await collection.find({}).toArray()
-  
-  return findResult
-}
-
-app.get('/api/fbhl/playerData', (req, res) => {
-  selectAllFromCollection('players')
-  .then(players => res.json(players))
-  .catch(console.error)
-})
-
+app.use('/api/fbhl/playerData', playersRouter)
 app.use('/api/fbhl/matchHistory', matchesRouter)
 app.use('/api/fbhl/users', usersRouter)
 app.use('/api/fbhl/login', loginRouter)

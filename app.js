@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const middleware = require('./utils/middleware')
+const matchesRouter = require('./controllers/matches')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const schedulesRouter = require('./controllers/schedules')
@@ -35,18 +36,13 @@ async function selectAllFromCollection(collectionName) {
   return findResult
 }
 
-app.get('/api/fbhl/matchHistory', (req, res) => {
-  selectAllFromCollection('matches')
-    .then(matches => res.json(matches))
-    .catch(console.error)
-})
-
 app.get('/api/fbhl/playerData', (req, res) => {
   selectAllFromCollection('players')
   .then(players => res.json(players))
   .catch(console.error)
 })
 
+app.use('/api/fbhl/matchHistory', matchesRouter)
 app.use('/api/fbhl/users', usersRouter)
 app.use('/api/fbhl/login', loginRouter)
 app.use('/api/fbhl/schedule', schedulesRouter)

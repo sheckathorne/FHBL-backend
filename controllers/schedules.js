@@ -16,7 +16,6 @@ schedulesRouter.get('/', async (request, response) => {
 })
 
 schedulesRouter.delete('/:id',(request, response, next) => {
-
   const token = getTokenFrom(request)
   
   const decodedToken = jwt.verify(token, process.env.SECRET)

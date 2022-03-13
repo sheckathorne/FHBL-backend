@@ -4,6 +4,7 @@ const matchSchema = new mongoose.Schema({
   matchId: String,
   timestamp: Number,
   matchDate: Date,
+  matchDateString: String,
   teams: [{
     clubId: String,
     data: {

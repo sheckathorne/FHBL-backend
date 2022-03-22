@@ -63,7 +63,8 @@ schedulesRouter.post('/',(request, response, next) => {
 
   const scheduledMatch = new Schedule({
     matchDate: body.matchDate,
-    teams: body.teams
+    teams: body.teams,
+    timeString: body.timeString
   })
 
   console.log('scheduledMatch', scheduledMatch)

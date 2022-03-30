@@ -11,6 +11,7 @@ const teamRankingsRouter = require('./controllers/teamRankings')
 const schedulesRouter = require('./controllers/schedules')
 
 const mongoose = require('mongoose')
+const invalidMatchesRouter = require('./controllers/invalidMatches')
 
 mongoose.connect(config.MONGO_DB_URI)
   .then(result => {
@@ -31,6 +32,7 @@ app.use('/api/fbhl/users', usersRouter)
 app.use('/api/fbhl/login', loginRouter)
 app.use('/api/fbhl/schedule', schedulesRouter)
 app.use('/api/fbhl/teamRankings', teamRankingsRouter)
+app.use('/api/fbhl/invalidMatches', invalidMatchesRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

@@ -5,7 +5,7 @@ const matchSchema = new mongoose.Schema({
   timestamp: Number,
   matchDate: Date,
   matchDateString: String,
-  teams: [{
+  clubs: [{
     clubId: String,
     data: {
       cNhlOnlineGameType: String,
@@ -57,12 +57,6 @@ const matchSchema = new mongoose.Schema({
     }
   }]
 },{ collection: 'matches' })
-
-matchSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-  }
-})
 
 const Match = mongoose.model('Match', matchSchema)
 

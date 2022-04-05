@@ -11,7 +11,9 @@ const matchSchema = new mongoose.Schema({
       cNhlOnlineGameType: String,
       goals: String,
       goalsAgainst: String,
-      result: String
+      result: String,
+      goalsForRaw: String,
+      goalsAgainstRaw: String
     }    
   }],
   players: [{

@@ -67,8 +67,6 @@ schedulesRouter.post('/',(request, response, next) => {
     timeString: body.timeString
   })
 
-  console.log('scheduledMatch', scheduledMatch)
-
   scheduledMatch
     .save()
     .then(savedScheduleMatch => {

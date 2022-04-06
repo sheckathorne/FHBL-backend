@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const teamRankingSchema = new mongoose.Schema({
   rank: Number,
   teamId: String,
+  conference: String,
   division: String,
   abbreviation: String,
   teamName: String,

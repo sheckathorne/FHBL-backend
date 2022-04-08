@@ -10,6 +10,21 @@ const getTokenFrom = request => {
   return null
 }
 
+forfeitsRouter.delete('/:matchId',(request, response, next) => {
+  const token = getTokenFrom(request)
+  
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+  
+  Forfeit.deleteOne({ matchId: request.params.matchId })
+    .then(_result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+})
+
 forfeitsRouter.get('/', async (_request, response) => {
   const forfeits = await Forfeit.find({})
   response.json(forfeits)

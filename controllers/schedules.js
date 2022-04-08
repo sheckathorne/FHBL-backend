@@ -24,7 +24,7 @@ schedulesRouter.delete('/:id',(request, response, next) => {
   }
   
   Schedule.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(_result => {
       response.status(204).end()
     })
     .catch(error => next(error))

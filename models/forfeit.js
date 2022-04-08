@@ -5,7 +5,8 @@ const forfeitSchema = new mongoose.Schema({
   timestamp: Number,
   matchDate: String,
   winningClub: String,
-  losingClub: String
+  losingClub: String,
+  overtimeLoss: Boolean
 },{ collection: 'forfeits' })
 
 const Forfeit = mongoose.model('Forfeit', forfeitSchema)

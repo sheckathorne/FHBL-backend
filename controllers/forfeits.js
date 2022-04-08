@@ -16,7 +16,7 @@ forfeitsRouter.get('/', async (_request, response) => {
 })
 
 forfeitsRouter.post('/',(request, response, _next) => {
-  const { matchId, timestamp, matchDate, winningClub, losingClub } = request.body
+  const { matchId, timestamp, matchDate, winningClub, losingClub, overtimeLoss } = request.body
 
   const token = getTokenFrom(request)
 
@@ -30,7 +30,8 @@ forfeitsRouter.post('/',(request, response, _next) => {
     timestamp,
     matchDate,
     winningClub,
-    losingClub
+    losingClub,
+    overtimeLoss
   })
 
   forfeitedMatch

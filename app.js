@@ -14,6 +14,7 @@ const matchSkeletonsRouter = require('./controllers/matchSkeletons')
 const mongoose = require('mongoose')
 const invalidMatchesRouter = require('./controllers/invalidMatches')
 const forfeitsRouter = require('./controllers/forfeits')
+const invalidMatchesDetailRouter = require('./controllers/invalidMatchesDetail')
 
 mongoose.connect(config.MONGO_DB_URI)
   .then(result => {
@@ -37,6 +38,7 @@ app.use('/api/fbhl/teamRankings', teamRankingsRouter)
 app.use('/api/fbhl/invalidMatches', invalidMatchesRouter)
 app.use('/api/fbhl/matchSkeletons', matchSkeletonsRouter)
 app.use('/api/fbhl/forfeits', forfeitsRouter)
+app.use('/api/fbhl/invalidMatchesDetail', invalidMatchesDetailRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

@@ -33,7 +33,7 @@ invalidMatchesRouter.delete('/:id',(request, response, next) => {
 })
 
 invalidMatchesRouter.post('/',(request, response, _next) => {
-  const body = request.body
+  const { matchId, newRecord } = request.body
 
   const token = getTokenFrom(request)
 
@@ -43,7 +43,8 @@ invalidMatchesRouter.post('/',(request, response, _next) => {
   }
 
   const invalidMatch = new InvalidMatch({
-    matchId: body.matchId
+    matchId,
+    newRecord
   })
 
   invalidMatch

@@ -11,6 +11,7 @@ const playerSchema = new mongoose.Schema({
   gkgaa: String,
   gksvpct: String,
   gkso: Number,
+  gkwins: Number,
   posSorted: String,
   skater: Boolean,
   skGamesPlayed: Number,
@@ -32,7 +33,7 @@ const playerSchema = new mongoose.Schema({
 },{ collection: 'players' })
 
 playerSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
+  transform: (_document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
   }
 })

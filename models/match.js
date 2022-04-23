@@ -41,7 +41,8 @@ const matchSchema = new mongoose.Schema({
         glga: String,
         glsaves: String,
         glshots: String,
-        glsoperiods: String
+        glsoperiods: String,
+        toi: String,
       }
     }]
   }],

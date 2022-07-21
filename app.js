@@ -17,7 +17,7 @@ const forfeitsRouter = require('./controllers/forfeits')
 const invalidMatchesDetailRouter = require('./controllers/invalidMatchesDetail')
 
 mongoose.connect(config.MONGO_DB_URI)
-  .then(result => {
+  .then(_res => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {

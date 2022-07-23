@@ -74,9 +74,6 @@ playersRouter.get('/pagination/club/count', async (req, res) => {
   res.json({ 'count': count[0].players })
 })
 
-
-
-
 playersRouter.get('/search', async (req, res) => {
   const pageNum = parseInt(req.query.pageNum) - 1
   const playerCount = parseInt(req.query.playerCount)
@@ -139,6 +136,26 @@ playersRouter.get('/search/club/count', async (req, res) => {
   ])
 
   res.json({ 'count': count[0].players })
+})
+
+playersRouter.get('/topByStat', async (req, res) => {
+  const statName = req.query.statName
+  const statFieldName = `${statName}_rank`
+  const sort = req.query.sort === 'desc' ? -1 : 1
+  const topCount = parseInt(req.query.topCount)
+  const skater = req.query.skater === 'true' ? true : false
+  const gamesPlayed = skater ? 'skGamesPlayed' : 'gkGamesPlayed'
+  
+
+  const players = await Player
+  .aggregate([
+    { $match: { 'skater': skater, [statFieldName]: { $lte: topCount }, [statFieldName]: { $gt: 0 } } },
+    { $sort: { [statName]: sort, [gamesPlayed]: -1 } },
+    { $limit: topCount },
+    { $project: {'playerName': 1, 'value': `$${statName}`, 'rank': `$${statFieldName}`, 'playerId': 1 } }
+  ])
+
+  return res.json(players)
 })
 
 module.exports = playersRouter

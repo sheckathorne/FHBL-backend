@@ -1,5 +1,4 @@
 const matchSkeletonsRouter = require('express').Router()
-const { response } = require('express')
 const Match = require('../models/match')
 
 matchSkeletonsRouter.get('/', async (_req, res) => {

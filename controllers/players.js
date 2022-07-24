@@ -6,7 +6,8 @@ playersRouter.get('/pagination', async (req, res) => {
   const playerCount = parseInt(req.query.playerCount)
   const skip = pageNum * playerCount
   const statName = req.query.statName
-  const sort = req.query.sort === 'desc' ? -1 : 1
+  const statIndex = `${statName}_index`
+  const sort = req.query.sort === 'desc' ? 1 : -1
   const skater = req.query.skater === 'true' ? true : false
   const gamesPlayed = skater ? 'skGamesPlayed' : 'gkGamesPlayed'
   const name = req.query.name
@@ -18,7 +19,7 @@ playersRouter.get('/pagination', async (req, res) => {
       { $match: { 'skater': skater } },
       { $match: ( clubId ) ? { 'clubId': clubId } : {} },
       { $match: ( name ) ? { 'playerName': { '$regex': name, '$options': 'i' } } : {}},
-      { $sort: { 'playerIsRanked': -1, [statName]: sort, [gamesPlayed]: -1 } },
+      { $sort: { 'playerIsRanked': -1, [statIndex]: sort, [gamesPlayed]: -1 } },
       { $skip: skip },
       { $limit: playerCount }
     ])
@@ -37,24 +38,26 @@ playersRouter.get('/pagination/count', async (req, res) => {
     { $count: 'players' }
   ])
 
-  res.json({ 'count': count[0].players })
+  res.json(count[0].players)
 })
 
 playersRouter.get('/pagination/indexNum', async(req, res) => {
   const playerId = req.query.playerId
   const statName = req.query.statName
+  const statIndex = `${statName}_index`
+  const playerCount = parseInt(req.query.playerCount)
   const skater = req.query.skater === 'true' ? true : false
-  const gamesPlayed = skater ? 'skGamesPlayed' : 'gkGamesPlayed'
-  const sort = req.query.sort === 'desc' ? -1 : 1
+  const sort = req.query.sort === 'desc' ? 1 : -1
 
-  const players =
+  const player =
     await Player
       .aggregate([
-        { $match: { 'skater': skater } },
-        { $sort: { 'playerIsRanked': -1, [statName]: sort, [gamesPlayed]: -1 } },
+        { $match: { 'skater': skater, 'playerId': playerId } },
+        { $project: {'index': `$${statIndex}` } },
+        { $limit: 1 }
       ])
 
-  index = players.findIndex(player => player.playerId === playerId)
+  const index = sort === -1 ? playerCount - player[0].index : player[0].index
 
   res.json(index)
 })

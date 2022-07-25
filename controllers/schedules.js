@@ -13,7 +13,6 @@ const getTokenFrom = request => {
 
 schedulesRouter.get('/', async (_req, res) => {
   const schedules = await Schedule.find({})
-  response.json(schedules)
   res.json(schedules)
 })
 

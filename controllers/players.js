@@ -54,7 +54,13 @@ playersRouter.get('/pagination/indexNum', async(req, res) => {
     await Player
       .aggregate([
         { $addFields: { clubId: { $first: '$teams' } } },
-        { $match: { 'skater': skater, 'playerId': playerId } },
+        { $match: { 
+            $and: [
+              { 'skater': skater },
+              {'playerId': playerId }
+            ]
+          }
+        },
         { $match: ( clubId ) ? { 'clubId': clubId } : {} },
         { $project: {'index': `$${statIndex}` } },
         { $limit: 1 }
@@ -84,7 +90,14 @@ playersRouter.get('/topByStat', async (req, res) => {
   
   const players = await Player
     .aggregate([
-      { $match: { 'skater': skater, [statFieldName]: { $lte: topCount }, [statFieldName]: { $gt: 0 } } },
+      { $match: { 
+          $and: [
+            {'skater': skater },
+            { [statFieldName]: { $lte: topCount } },
+            { [statFieldName]: { $gt: 0 } }
+          ]
+        }
+      },
       { $sort: { [statName]: sort, [gamesPlayed]: -1 } },
       { $limit: topCount },
       { $project: {'playerName': 1, 'value': `$${statName}`, 'rank': `$${statFieldName}`, 'playerId': 1 } }

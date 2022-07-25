@@ -2,7 +2,9 @@ const matchSkeletonsRouter = require('express').Router()
 const Match = require('../models/match')
 
 matchSkeletonsRouter.get('/', async (_req, res) => {
-  const matches = await Match.find({}).select('matchId timestamp matchDate matchDateString clubs.clubId clubs.data.goals')
+  const matches = await Match
+    .find({})
+    .select('matchId timestamp matchDate matchDateString clubs.clubId clubs.data.goals')
   res.json(matches)
 })
 

@@ -10,15 +10,18 @@ const getTokenFrom = request => {
   }
   return null
 }
-/*
+
 schedulesRouter.get('/', async (_req, res) => {
   const schedules = await Schedule.find({})
+  response.json(schedules)
   res.json(schedules)
 })
-*/
-schedulesRouter.get('/range', async(req, res) => {
-  const startDate = ( req.query.startDate === 10 ) ? parseInt(req.query.startDate) * 1000 : parseInt(req.query.startDate)
-  const endDate = ( req.query.endDate === 10 ) ? parseInt(req.query.endDate) * 1000 : parseInt(req.query.endDate)
+
+schedulesRouter.get('/fromRange', async(req, res) => {
+  const startDate = ( req.query.startDate.length === 10 ) ? parseInt(req.query.startDate) * 1000 : parseInt(req.query.startDate)
+  const endDate = ( req.query.endDate.length === 10 ) ? parseInt(req.query.endDate) * 1000 : parseInt(req.query.endDate)
+  console.log('startDate', startDate)
+  console.log('endDate', endDate)
   const clubId = req.query.clubId
   
   const schedules = await Schedule.aggregate([
@@ -34,7 +37,30 @@ schedulesRouter.get('/range', async(req, res) => {
   ])
 
   return res.json(schedules)
+})
 
+schedulesRouter.get('/dates/fromRange', async(req, res) => {
+  const startDate = ( req.query.startDate.length === 10 ) ? parseInt(req.query.startDate) * 1000 : parseInt(req.query.startDate)
+  const endDate = ( req.query.endDate.length === 10 ) ? parseInt(req.query.endDate) * 1000 : parseInt(req.query.endDate)
+  console.log('startDate', startDate)
+  console.log('endDate', endDate)
+  const clubId = req.query.clubId
+  
+  const schedules = await Schedule.aggregate([
+    { $addFields: { timestamp: { '$toLong' : { '$dateFromString': { dateString: '$matchDate', timezone: '-12' } } } } } ,
+    { $match: {
+        $and: [
+          {'timestamp': { $gte: startDate }},
+          {'timestamp': { $lte: endDate }}
+       ]
+      }
+    },
+    { $match: ( clubId ) ? { 'teams': { '$in': [ clubId ] } } : {} },
+    { $group: { _id: '$matchDate' } },
+  ])
+
+  const dates = schedules.map(date => date._id)
+  return res.json(dates)
 })
 
 schedulesRouter.delete('/:id',(request, response, next) => {

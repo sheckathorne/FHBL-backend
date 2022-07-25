@@ -45,6 +45,7 @@ playersRouter.get('/pagination/indexNum', async(req, res) => {
   const playerId = req.query.playerId
   const statName = req.query.statName
   const statIndex = `${statName}_index`
+  const clubId = req.query.clubId
   const playerCount = parseInt(req.query.playerCount)
   const skater = req.query.skater === 'true' ? true : false
   const sort = req.query.sort === 'desc' ? 1 : -1
@@ -52,7 +53,9 @@ playersRouter.get('/pagination/indexNum', async(req, res) => {
   const player =
     await Player
       .aggregate([
+        { $addFields: { clubId: { $first: '$teams' } } },
         { $match: { 'skater': skater, 'playerId': playerId } },
+        { $match: ( clubId ) ? { 'clubId': clubId } : {} },
         { $project: {'index': `$${statIndex}` } },
         { $limit: 1 }
       ])

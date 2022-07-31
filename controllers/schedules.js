@@ -1,7 +1,6 @@
 const schedulesRouter = require('express').Router()
 const Schedule = require('../models/schedule')
 const jwt = require('jsonwebtoken')
-const { json } = require('express')
 
 const getTokenFrom = request => {
   const authorization = request.get('authorization')
@@ -41,8 +40,6 @@ schedulesRouter.get('/fromRange', async(req, res) => {
 schedulesRouter.get('/dates/fromRange', async(req, res) => {
   const startDate = ( req.query.startDate.length === 10 ) ? parseInt(req.query.startDate) * 1000 : parseInt(req.query.startDate)
   const endDate = ( req.query.endDate.length === 10 ) ? parseInt(req.query.endDate) * 1000 : parseInt(req.query.endDate)
-  console.log('startDate', startDate)
-  console.log('endDate', endDate)
   const clubId = req.query.clubId
   
   const schedules = await Schedule.aggregate([

@@ -2,12 +2,12 @@ const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 
-usersRouter.post('/', async (request, response) => {
-  const { username, name, password, role } = request.body
+usersRouter.post('/', async (req, res) => {
+  const { username, name, password, role } = req.body
 
   const existingUser = await User.findOne({ username })
   if (existingUser) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: 'username must be unique'
     })
   }
@@ -24,12 +24,12 @@ usersRouter.post('/', async (request, response) => {
 
   const savedUser = await user.save()
 
-  response.status(201).json(savedUser)
+  res.status(201).json(savedUser)
 })
 
-usersRouter.get('/', async (request, response) => {
+usersRouter.get('/', async (_req, res) => {
   const users = await User.find({})
-  response.json(users)
+  res.json(users)
 })
 
 module.exports = usersRouter

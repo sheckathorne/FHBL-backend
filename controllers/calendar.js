@@ -6,12 +6,20 @@ const Forfeit = require('../models/forfeit')
 const Schedule = require('../models/schedule')
 const dayjs = require('dayjs')
 
+function freqMapOf(dates) {
+  const dateMap = new Object()
+  for ( const date of dates ) {
+    dateMap[date] = (dateMap[date] || 0) + 1
+  }
+  return dateMap
+}
+
 async function getSchedule(startDate, endDate, clubId) {
-  const startDte = startDate.toString().length === 10 ? startDate * 1000 : startDate
-  const endDte = endDate.toString().length === 10 ? endDate * 1000 : endDate
+  const startDte = startDate.toString().length === 13 ? startDate / 1000 : startDate
+  const endDte = endDate.toString().length === 13 ? endDate / 1000 : endDate
 
   const schedules = Schedule.aggregate([
-    { $addFields: { timestamp: { '$toLong' : { '$dateFromString': { dateString: '$matchDate', timezone: '-12' } } } } } ,
+    { $addFields: { timestamp: { '$divide': [{ '$toLong' : { '$dateFromString': { dateString: '$matchDate', timezone: '-12' } } }, 1000] } } },
     { $match: {
         $and: [
           {'timestamp': { $gte: startDte }},
@@ -26,11 +34,11 @@ async function getSchedule(startDate, endDate, clubId) {
 }
 
 async function getBareSchedule(startDate, endDate, clubId) {
-  const startDte = startDate.toString().length === 10 ? startDate * 1000 : startDate
-  const endDte = endDate.toString().length === 10 ? endDate * 1000 : endDate
+  const startDte = startDate.toString().length === 13 ? startDate / 1000 : startDate
+  const endDte = endDate.toString().length === 13 ? endDate / 1000 : endDate
 
   const schedules = Schedule.aggregate([
-    { $addFields: { timestamp: { '$toLong' : { '$dateFromString': { dateString: '$matchDate', timezone: '-12' } } } } } ,
+    { $addFields: { timestamp: { '$divide': [{ '$toLong' : { '$dateFromString': { dateString: '$matchDate', timezone: '-12' } } }, 1000] } } },
     { $match: {
         $and: [
           {'timestamp': { $gte: startDte }},
@@ -62,6 +70,7 @@ async function getForfeits(startDate, endDate, clubId){
       } : {} },
     { $project: {
       'matchDate': 1,
+      'matchId': 1,
       '_id': 1,
       'timestamp': 1,
       'forfeit': {$toBool: true},
@@ -152,18 +161,22 @@ async function getMatchBareSekeltons(startDate, endDate, clubId) {
   return matchSkeletons
 }
 
-async function getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole) {
-  const matchDateString = (timestamp) => dayjs(dayjs.unix(timestamp)).format('M/D/YYYY')
+async function getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole, bare) {
+  const matchDateString = (timestamp) => {
+    const ts = timestamp.toString().length === 13 ? timestamp / 1000 : timestamp
+    return dayjs(dayjs.unix(ts)).format('M/D/YYYY')
+  }
 
-  const invalidMatches = userRole === 'admin' ? await InvalidMatch.find({}).select('matchId') : []
-  const schedules = userRole === 'played' ? [] : await getBareSchedule(startDate, endDate, clubId)
-  const matchSkeletons = await getMatchBareSekeltons(startDate, endDate, clubId)
-  const forfeits = await getBareForfeits(startDate, endDate, clubId)
-
-  const matchesWithForfeits = [...matchSkeletons, ...forfeits].map(match => ({ ...match, matchDate: matchDateString(match.timestamp) }))
+  const invalidMatches = await InvalidMatch.find({}).select('matchId')
+  const schedules = matchFilter === 'played' ? [] : bare ? await getBareSchedule(startDate, endDate, clubId) : await getSchedule(startDate, endDate, clubId)
+  const matchSkeletons = bare ? await getMatchBareSekeltons(startDate, endDate, clubId) : await getMatchSekeltons(startDate, endDate, clubId)
+  const forfeits = bare ? await getBareForfeits(startDate, endDate, clubId) : await getForfeits(startDate, endDate, clubId)
   
+  const matchesWithForfeits = [...matchSkeletons, ...forfeits].map(match => ({ matchDate: matchDateString(match.timestamp), ...match }))
+
   const scheduleWithoutPlayedMatches = schedules.filter(match => {
-    const scheduledMatchWasPlayed = matchesWithForfeits.find(m => m.clubs.includes(match.teams[0]) && m.clubs.includes(match.teams[1]) && match.matchDate === m.matchDate)
+    const scheduledMatchWasPlayed = matchesWithForfeits.find(m => {
+      return m.clubs.includes(match.teams[0]) && m.clubs.includes(match.teams[1]) && match.matchDate === m.matchDate})
     return !scheduledMatchWasPlayed
   })
 
@@ -180,7 +193,7 @@ async function getFilteredMatchCards(startDate, endDate, clubId, matchFilter, us
           //matchDateString: match.matchDate, 
           matchWasPlayed: false }))
 
-    const matchCards = userRole === 'admin' ? filteredMatchCards : filteredMatchCards.filter(match => !invalidMatches.includes(match.matchId))
+    const matchCards = userRole === 'admin' ? filteredMatchCards : filteredMatchCards.filter(match => !invalidMatches.map(m => m.matchId).includes(match.matchId))
 
   return matchCards
 }
@@ -191,11 +204,13 @@ calendarRouter.get('/', async (req, res) => {
   const clubId = req.query.clubId
   const matchFilter = req.query.matchFilter
   const userRole = req.query.role
+  const bare = false
 
-  const filteredMatchCards = await getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole)
+  const filteredMatchCards = await getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole, bare)
 
   res.json(filteredMatchCards)
 })
+
 
 calendarRouter.get('/displayDates', async (req, res) => {
   const startDate = parseInt(req.query.startDate)
@@ -203,23 +218,22 @@ calendarRouter.get('/displayDates', async (req, res) => {
   const clubId = req.query.clubId
   const matchFilter = req.query.matchFilter
   const userRole = req.query.userRole
+  const bare = true
 
-  const filteredMatchCards = await getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole)
+  const filteredMatchCards = await getFilteredMatchCards(startDate, endDate, clubId, matchFilter, userRole, bare)
   const matchDates = filteredMatchCards.map(match => match.matchDate)
-  const uniqueMatchDates = [...new Set(matchDates)]
+  const dateMap = freqMapOf(matchDates)
 
-  res.json(uniqueMatchDates)
+  res.json(dateMap)
 })
 
-calendarRouter.get('/daySchedule', async (req, res) => {
-  
+calendarRouter.get('/schedule', async (req, res) => {
   const startDate = parseInt(req.query.startDate)
   const endDate = parseInt(req.query.endDate)
   const clubId = req.query.clubId
 
   const schedule = await getSchedule(startDate, endDate, clubId)
   res.json(schedule)
-
 })
 
 module.exports = calendarRouter

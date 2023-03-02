@@ -67,11 +67,15 @@ schedulesRouter.delete('/:id',(request, response, next) => {
     return response.status(401).json({ error: 'token missing or invalid' })
   }
   
-  Schedule.findByIdAndRemove(request.params.id)
-    .then(_result => {
+  Schedule.findByIdAndRemove(request.params.id, (err, doc) => {
+    if (err) {
+      next(error)
+    }
+    else {
+      response.send(doc)
       response.status(204).end()
-    })
-    .catch(error => next(error))
+    }
+  })
 })
 
 schedulesRouter.put('/:id',(request, response, next) => {
